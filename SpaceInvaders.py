@@ -56,8 +56,18 @@ class Enemy:
     def show(self):
         self.xcor += self.direction * self.speed
         gameDisplay.blit(enemyImg, (self.xcor, self.ycor))
+    def createEnemies():
+        newEnemies = []
+        for x in range(0, 5):
+            for y in range(0, 3):
+                newEnemy = Enemy()
+                newEnemy.xcor = gameSideMargin + gameBorderWidth + enemyImg.get_width() * x
+                newEnemy.ycor = gameTopMargin + gameBorderWidth + enemyImg.get_height() * y
+                newEnemies.append(newEnemy)
+        return newEnemies
 
 player = Player()
+enemies = Enemy.createEnemies()
 
 #Player movement.
 isAlive = True
@@ -94,6 +104,9 @@ while isAlive:
     # Draw a white rectangle with the background image just inside of it to create the game border
     pygame.draw.rect(gameDisplay, white, (gameSideMargin, gameTopMargin, windowWidth - gameSideMargin * 2, windowHeight - gameBottomMargin - gameTopMargin))                                 
     gameDisplay.blit(backgroundImg, (gameSideMargin + gameBorderWidth, gameTopMargin + gameBorderWidth), (0, 0, gameWidth, gameHeight))
+
+    for enemy in enemies:
+        enemy.show()
 
     player.show()
 
