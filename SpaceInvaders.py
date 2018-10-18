@@ -6,6 +6,10 @@ gameSideMargin = 10
 gameTopMargin = 40
 gameBottomMargin = gameTopMargin
 gameBorderWidth = 3
+wallLeft = gameSideMargin + gameBorderWidth
+wallRight = windowWidth - gameSideMargin - gameBorderWidth
+wallTop = gameTopMargin + gameBorderWidth
+wallBottom = windowHeight - gameBottomMargin - gameBorderWidth
 
 black = (0,0,0)
 white = (255,255,255)
@@ -25,10 +29,22 @@ backgroundImg = pygame.image.load("si-background.gif")
 playerImg = pygame.image.load("si-player.gif")
 enemyImg = pygame.image.load("kappa.png")
 
+def isCollision(a, b):
+    if a.xcor + a.width > b.xcor and a.xcor < b.xcor + b.width \
+    and a.ycor + a.height > b.ycor and a.ycor < b.ycor + b.height:
+        return True
+    else:
+        return False
+
+
+
+
 # Player Abilities
 class Player:
     xcor = 60
-    ycor = windowHeight - gameBottomMargin - gameBorderWidth - playerImg.get_height()
+    ycor = wallBottom - playerImg.get_height()
+    width = playerImg.get_width()
+    height = playerImg.get_height()
     speed = 5
     direction = 0
     def stopMoving(self):
@@ -37,7 +53,7 @@ class Player:
         movementAmount = self.direction * self.speed
         newx = self.xcor + movementAmount
 
-        if newx < gameSideMargin + gameBorderWidth or newx > windowWidth - gameSideMargin - gameBorderWidth - playerImg.get_width():
+        if newx < wallLeft or newx > windowWidth - gameSideMargin - gameBorderWidth - playerImg.get_width():
             self.xcor = self.xcor
         else:
             self.xcor = newx
@@ -51,20 +67,31 @@ class Player:
 class Enemy:
     xcor = 0
     ycor = 0
-    speed = 1
+    width = enemyImg.get_width()
+    height = enemyImg.get_height()
+    speed = 9001
     direction = 1
     def show(self):
-        self.xcor += self.direction * self.speed
         gameDisplay.blit(enemyImg, (self.xcor, self.ycor))
+    def moveOver(self):
+        self.xcor += self.direction * self.speed
+    def moveDown(self):
+        self.ycor += enemyImg.get_height() / 2
+    def changeDirection(self):
+        self.direction *= -1
+    @staticmethod
     def createEnemies():
         newEnemies = []
         for x in range(0, 5):
             for y in range(0, 3):
                 newEnemy = Enemy()
-                newEnemy.xcor = gameSideMargin + gameBorderWidth + enemyImg.get_width() * x
-                newEnemy.ycor = gameTopMargin + gameBorderWidth + enemyImg.get_height() * y
+                newEnemy.xcor = wallLeft + 1 + width * x
+                newEnemy.ycor = wallTop + enemyImg.get_height() * y
                 newEnemies.append(newEnemy)
         return newEnemies
+
+pygame.mixer.music.load('Hat.mp3')
+pygame.mixer.music.play(-1)
 
 player = Player()
 enemies = Enemy.createEnemies()
@@ -87,7 +114,18 @@ while isAlive:
             if event.key == pygame.K_LEFT or event.key == pygame.K_RIGHT:
                 player.stopMoving()
 
+    for enemy in enemies:
+        if isCollision(enemy, player):
+            isAlive = False
+        if enemy.xcor + enemyImg.get_width() >= wallRight or enemy.xcor <= wallLeft:
+            for e in enemies:
+                e.changeDirection()
+                e.moveDown()
+            break
 
+    for enemy in enemies:
+        enemy.moveOver()
+    
 
     
     gameDisplay.blit(gameDisplay, (0, 0))
@@ -98,12 +136,12 @@ while isAlive:
     gameDisplay.blit(gameDisplay, (0, 0))
     gameDisplay.fill(black)
 
-    gameWidth = windowWidth - (gameSideMargin * 2) - (gameBorderWidth * 2)
-    gameHeight = windowHeight - gameTopMargin - gameBottomMargin - (gameBorderWidth * 2)
+    gameWidth = wallRight - wallLeft
+    gameHeight = wallBottom - wallTop
 
     # Draw a white rectangle with the background image just inside of it to create the game border
     pygame.draw.rect(gameDisplay, white, (gameSideMargin, gameTopMargin, windowWidth - gameSideMargin * 2, windowHeight - gameBottomMargin - gameTopMargin))                                 
-    gameDisplay.blit(backgroundImg, (gameSideMargin + gameBorderWidth, gameTopMargin + gameBorderWidth), (0, 0, gameWidth, gameHeight))
+    gameDisplay.blit(backgroundImg, (wallLeft, wallTop), (0, 0, gameWidth, gameHeight))
 
     for enemy in enemies:
         enemy.show()
