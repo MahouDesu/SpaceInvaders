@@ -28,6 +28,7 @@ clock = pygame.time.Clock()
 backgroundImg = pygame.image.load("si-background.gif")
 playerImg = pygame.image.load("si-player.gif")
 enemyImg = pygame.image.load("kappa.png")
+bulletImg = pygame.image.load("si-bullet.gif")
 
 def isCollision(a, b):
     if a.xcor + a.width > b.xcor and a.xcor < b.xcor + b.width \
@@ -69,7 +70,7 @@ class Enemy:
     ycor = 0
     width = enemyImg.get_width()
     height = enemyImg.get_height()
-    speed = 9001
+    speed = 1
     direction = 1
     def show(self):
         gameDisplay.blit(enemyImg, (self.xcor, self.ycor))
@@ -85,16 +86,33 @@ class Enemy:
         for x in range(0, 5):
             for y in range(0, 3):
                 newEnemy = Enemy()
-                newEnemy.xcor = wallLeft + 1 + width * x
+                newEnemy.xcor = wallLeft + 1 + enemyImg.get_width() * x
                 newEnemy.ycor = wallTop + enemyImg.get_height() * y
                 newEnemies.append(newEnemy)
         return newEnemies
+
+class Bullet:
+    xcor = 0
+    ycor = 0
+    width = bulletImg.get_width()
+    height = bulletImg.get_height()
+    speed = 10
+    def __init__(self, x, y):
+        self.xcor = x
+        self.ycor = y
+    def show(self):
+        gameDisplay.blit(bulletImg, (self.xcor, self.ycor))
+    def move(self):
+        self.ycor -= self.speed
+
+
 
 pygame.mixer.music.load('Hat.mp3')
 pygame.mixer.music.play(-1)
 
 player = Player()
 enemies = Enemy.createEnemies()
+bullets = []
 
 #Player movement.
 isAlive = True
@@ -109,6 +127,9 @@ while isAlive:
                 player.moveLeft()
             elif event.key == pygame.K_RIGHT:
                 player.moveRight()
+            elif event.key == pygame.K_SPACE:
+                newBullet = Bullet(player.xcor, player.ycor)
+                bullets.append(newBullet)
 
         if event.type == pygame.KEYUP:
             if event.key == pygame.K_LEFT or event.key == pygame.K_RIGHT:
@@ -123,8 +144,30 @@ while isAlive:
                 e.moveDown()
             break
 
+    for bullet in bullets:
+        if bullet.ycor < wallTop:
+            try:
+                bullets.remove(bullet)
+            except ValueError:
+                pass
+            break
+        for enemy in enemies:
+            if isCollision(enemy, bullet):
+                try:
+                    enemies.remove(enemy)
+                except ValueError:
+                    pass
+                try:    
+                    bullets.remove(bullet)
+                except ValueError:
+                    pass
+                break
+
     for enemy in enemies:
         enemy.moveOver()
+
+    for bullet in bullets:
+        bullet.move()
     
 
     
@@ -145,6 +188,9 @@ while isAlive:
 
     for enemy in enemies:
         enemy.show()
+
+    for bullet in bullets:
+        bullet.show()
 
     player.show()
 
