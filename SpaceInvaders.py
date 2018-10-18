@@ -23,6 +23,7 @@ titleFont = pygame.font.SysFont('Arial', 40, True)
 clock = pygame.time.Clock()
 backgroundImg = pygame.image.load("si-background.gif")
 playerImg = pygame.image.load("si-player.gif")
+enemyImg = pygame.image.load("kappa.png")
 
 # Player Abilities
 class Player:
@@ -46,6 +47,15 @@ class Player:
         self.direction = 1
     def moveLeft(self):
         self.direction = -1
+
+class Enemy:
+    xcor = 0
+    ycor = 0
+    speed = 1
+    direction = 1
+    def show(self):
+        self.xcor += self.direction * self.speed
+        gameDisplay.blit(enemyImg, (self.xcor, self.ycor))
 
 player = Player()
 
